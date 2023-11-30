@@ -1,0 +1,380 @@
+---
+title: "FMPH221 Homework 2"
+author: "Hongjie (Harry) Qian"
+date: "2023-10-18"
+output: pdf_document
+---
+
+# Question 1 (Q3.4)
+
+**Question** The following questions all refer to the mean function
+
+$$
+\mathrm{E}\left(Y \mid X_1=x_1, X_2=x_2\right)=\beta_0+\beta_1 x_1+\beta_2 x_2
+$$
+
+## 3.4.1
+
+Suppose we fit the equation above to data for which $x_1 = 2.2x_2$, with no error. For example, $x_1$ could be a weight in pounds, and $x_2$ the weight of the same object in kilogram. Describe the appearance of the added-variable plot for $X_2$ after $X_1$.\
+**Answer**:\
+We have $\mathrm{E}\left(Y \mid X_1=x_1, X_2=x_2\right)=\beta_0+\beta_1 x_1+\beta_2 x_2$ and the data satisfy $x_1 = 2.2x_2$.\
+Hence, the $X_2$ is an exact linear function on $X_1$ ($X_1 = 2.2 X_2$) and the residuals from $X_2$ on $X_1$ should be zero.
+
+However, there are residuals from $Y$ on $X_1$, and therefore the added-variable plot for $X_2$ after $X_1$ should be like a vertical line on $\hat{e}$ from $X_2$ on $X_1$ = 0 (vertical line at the coordinate point = 0 on the horizontal axis).
+
+## 3.4.2
+
+Again referring to the equation above, suppose now that $Y = 3X_1$ without error, but $X_1$ and $X_2$ are not perfectly correlated. Describe the appearance of the added-variable plot for $X_2$ after $X_1$.\
+**Answer**:\
+Since $Y = 3X_1$ without error, $Y$ is an exact function of $X_1$ and the residuals from $Y$ on $X_1$ should be zero.\
+However, there are residuals from $X_2$ on $X_1$, and therefore the added-variable plot for $X_2$ after $X_1$ should be like a horizontal line on $\hat{e}$ from $Y$ on $X_1$ = 0 (horizontal line at the coordinate point on the vertical axis).
+
+## 3.4.3
+
+Under what conditions will the added-variable plot for $X_2$ after $X_1$ have exactly the same shape as the marginal plot of $Y$ versus $X_2$?\
+**Answer**:\
+If the added-variable plot for $X_2$ after $X_1$ have exactly the same shape as the marginal plot of $Y$ versus $X_2$, $\hat{e}$ from $X_2$ on $X_1$ should be equal to $\hat{e}$ from $Y$ on $X_1$. Under this circumstance, $X_1$ is uncorrelated with both $X_2$ and $Y$.
+
+## 3.4.4
+
+True or false: The vertical variation of the points in an added-variable plot for $X_2$ after $X_1$ is always less than or equal to the vertical variation in a plot of $Y$ versus $X_2$. Explain.\
+**Answer**:\
+**True.**\
+Explaination:
+
+-   The vertical variation of the points in an added-variable plot for $X_2$ after $X_1$ is $\hat{e}$ from $Y$ on $X_1$, while the vertical variation in a plot of $Y$ versus $X_2$ ignores the effects of $X_1$.
+
+-   Since both the residuals from $X_1$ on $X_2$ and the residuals from $X_1$ on $Y$ contribute to the total residuals in this multiple linear regression (from $X_1$ and $X_2$ on $Y$), therefore the vertical variation of the points in an added-variable plot for $X_2$ after $X_1$ is always less than or equal to the vertical variation in a plot of $Y$ versus $X_2$.
+
+# Question 2 (Q4.2)
+
+**Question** (Data file: `Transact`) The data in this example consists of a sample of branches of a large Australian bank (Cunningham and Heathcote, 1989). Each branch makes transactions of two types, and for each of the branches we have recorded the number t1 of type 1 transactions and the number t2 of type 2 transactions. The response is time, the total minutes of labor used by the branch.
+
+Define a = (`t1` + `t2`)/2 to be the average transaction time, and `d` = `t1` - `t2`, and fit the following four mean functions:
+
+M1: E(`time`\|`t1`, `t2`) = $\beta_{01}$ +$\beta_{11}$`t1`+$\beta_{21}$`t2`
+
+M2: E(`time`\|`t1`, `t2`) = $\beta_{02}$ +$\beta_{32}$`a`+$\beta_{42}$`d`
+
+M3: E(`time`\|`t1`, `t2`) = $\beta_{03}$ +$\beta_{23}$`t2`+$\beta_{43}$`d`
+
+M4: E(`time`\|`t1`, `t2`) = $\beta_{04}$+$\beta_{14}$`t1`+$\beta_{24}$`t2`+$\beta_{34}$`a`+$\beta_{44}$`d`
+
+## 4.2.1
+
+In the fit of M4, some of the coefficients estimates are labeled as "aliased" or else they are simply omitted. Explain what this means and why this happens.\
+**Answer**:
+
+```{r Bank_M4, message=FALSE}
+library(alr4)
+Transact <- transform(Transact, d = t1 - t2, a = (t1 + t2)/2)
+bank_M4 <- lm(time ~ t1 + t2 + a + d, data=Transact)
+summary(bank_M4)
+```
+
+The "`aliased`" or "`NA`" in the coefficient estimates of `d` & `a` in `M4` means that there is rank deficiency in the multiple linear regression `M4` and this model is over-parameterized.\
+This is caused by the linearly dependent regressors, `d`and `a` are respectively linear combinations of `t1` and `t2`, in `M4`. Since `d` & `a` are completely linear on `t1` and `t2`, it is exact collinearity here.
+
+## 4.2.2
+
+What aspects of the fitted regressions are the same? What aspects are different?\
+**Answer**:
+
+```{r Bank_M1, message=FALSE}
+library(alr4)
+bank_M1 <- lm(time ~ t1 + t2 , data=Transact)
+round(summary(bank_M1)$coef, 3)
+round(summary(bank_M1)$r.squared, 3)
+```
+
+```{r Bank_M2, message=FALSE}
+bank_M2 <- lm(time ~ a + d , data=Transact)
+round(summary(bank_M2)$coef, 3)
+round(summary(bank_M2)$r.squared, 3)
+```
+
+```{r Bank_M3, message=FALSE}
+bank_M3 <- lm(time ~ t2 + d , data=Transact)
+round(summary(bank_M3)$coef, 3)
+round(summary(bank_M3)$r.squared, 3)
+```
+
+```{r Bank_M4_2, message=FALSE}
+bank_M4 <- lm(time ~ t1 + t2 + a + d, data=Transact)
+round(summary(bank_M4)$coef, 3)
+round(summary(bank_M4)$r.squared, 3)
+```
+
+From the summaries of all three multiple linear models applied to the `Transact` dataset, we can see:
+
+-   Consistencies & Differences:
+
+-   The *R*^2^ (fraction of variability explained, FVE) values of all three linearly fitted models are the same, which are all 0.909. The standard error and t value/*p*-values of three models are the same as well, as 170.544 and 0.847/0.398.
+
+-   The estimated intercept values $\hat{\beta_0}$ for all three linearly fitted models are all 144.369.
+
+-   The estimated coefficients for `t1` in `M1` and `d` in `M3` are the same, which are both 5.462, and the t values of both are the same, as 12.607; meanwhile, the estimated coefficients for `a` in `M2` and `t2` in `M3` are the same, which are both 7.497, and the t values of both are the same, as 20.514.
+
+-   The estimates for `t1` and `t2` is the same in `M1` and `M4`.
+
+## 4.2.3
+
+Why is the estimate for `t2` different in M1 and M3?\
+**Answer**:
+
+```{r, message=FALSE}
+round(summary(bank_M1)$coef[3], 3)
+round(summary(bank_M3)$coef[2], 3)
+```
+
+In `M1`, the estimate for `t2` is obtained via the fix of `t1` (conditioning of `t1`), and the estimate is the change of `time` for a unit change in `t2`.\
+While in `M3`, the estimate for `t2` is obtained via the fix of `d`, which is the difference between `t1` and `t2` (`d` = `t1` - `t2`) (conditioning of `d`). If the `t2` is to be increased by one unit, `t1` should be increased by one unit as well. Therefore, the estimate for `t2` in `M3` is the sum of the estimates for `t1` and `t2` in the linear regression model `M1`.\
+Hence, the estimate for `t2` is different in `M1` and `M3`.
+
+# Question 3 (Q4.7)
+
+(Data file: `UN11`) Verify that in the regression log(`fertility`) \~ log(`ppgdp`) + `lifeExpF` a 25% increase in `ppgdp` is associated with a 1.4% decrease in expected fertility.\
+**Answer**:
+
+```{r UN11_1, message=FALSE}
+library(alr4)
+UN_m1 <- lm(log(fertility) ~ log(ppgdp) + lifeExpF, data = UN11)
+round(summary(UN_m1)$coef, 3)
+```
+
+```{r UN11_2, message=FALSE}
+hat_beta_1 <- round(summary(UN_m1)$coef[2], 3)
+print((exp(hat_beta_1*log(1.25))-1)*100)
+```
+
+Therefore, we have veridfied that a 25% decrease in `ppgdp` is associated with a 1.4% decrease in expected fertility.
+
+# Question 4 (Q4.8)
+
+Suppose we fit a regression with the true mean function
+
+$$
+\mathrm{E}\left(Y \mid X_1=x_1, X_2=x_2\right)=3+4 x_1+2 x_2
+$$
+
+Provide conditions under which the mean function for $E(Y|X_1 = x_1)$ is linear but has a negative coefficient for $x_1$.\
+**Answer**:\
+Since the mean function for $E(Y|X_1 = x_1)$ is linear, we suppose $E(Y|X_1 = x_1) = \gamma_0 + \gamma_1x_1$ where $\gamma_1 < 0$.
+
+$\because \mathrm{E}\left(Y \mid X_1=x_1, X_2=x_2\right)=3+4 x_1+2 x_2$
+
+$\therefore$\
+$$
+\begin{aligned}
+\mathrm{E}(Y\mid X_1=x_1) & = 3 + 4x_1 + 2\mathrm{E}(X_2\mid X_1 = x_1) \\
+& = 3 + 4x_1 + 2(\gamma_0 + \gamma_1x_1) \\
+& = (3+2\gamma_0) + (4+2\gamma_1)x_1
+\end{aligned}
+$$
+
+Since $x_1$ has a negative coefficient, $4+2\gamma_1 < 0$\
+=\> $\gamma_1 \in (-\infty, -2)$
+
+Therefore, when the mean function for $E(Y|X_1 = x_1)$ is linear but has a negative coefficient for $x_1$, $\gamma_1 \in (-\infty, -2)$.
+
+# Question 5 (Q4.9)
+
+In a study of faculty salaries in a small college in the Midwest, a linear regression model was fit, giving the fitted mean function
+
+E($\widehat{\mathrm{Salary} \mid \mathrm{Sex}}$) = 24697 - 3340`Sex`
+
+where `Sex` equals 1 if the faculty member was female and 0 if male. The response `Salary` is measured in dollars (the data are from the 1970s).
+
+## 4.9.1
+
+Give a sentence that describes the meaning of the two estimated coefficients.\
+**Answer**:\
+- \$24687, which is the intercept, indicates the estimated expected value of the response when all the regressor, only `Sex` here, equals 0; since when `Sex` = 0, the condition is male, and hence, \$24687 is further the estimated expected salary for male faculty.
+
+-   \$3340, which is the coefficient for `Sex`, is the estimated change of mean response when there is one unit increase in `Sex`, and thus the expected salary of female faculty is lower than \$3340.
+
+## 4.9.2
+
+An alternative mean function fit to these data with an additional term, `Years`, the number of years employed at this college, gives the estimated mean function
+
+E($\widehat{\mathrm{Salary}\mid \mathrm{Sex}, \mathrm{Years}}$) = 18065 + 201`Sex`+ 759`Years`
+
+The important difference between these two mean functions is that the coefficient for Sex has changed signs. Using the results of this chapter, explain how this could happen. (Data consistent with these equations are presented in Problem 5.17).\
+**Answer**:\
+Since we have: - E($\widehat{\mathrm{Salary} \mid \mathrm{Sex}}$) = 24697 - 3340`Sex`
+
+-   E($\widehat{\mathrm{Salary}\mid \mathrm{Sex}, \mathrm{Years}}$) = 18065 + 201`Sex`+ 759`Years`
+
+We try to replace the `Salary` in the equation and represent the relationship between `Year` and `Sex`.
+
+=\> E[E(`Salary`\|`Year`,`Sex`)\|`Sex`] = 24697 - 3340`Sex`\
+=\> E(18065 + 201`Sex` + 759`Year`\|`Sex`) = 24697 - 3340`Sex`\
+=\> 18065 + 201`Sex` + 759E(`Year`\|`Sex`) = 24697 - 3340`Sex`\
+=\> E(`Year`\|`Sex`) = (24697 - 18065)/759 - (3340 + 201)/759`Sex`\
+=\> E(`Year`\|`Sex`) = 8.74 - 4.67`Sex`
+
+Therefore, if both estimated expectations exist, the expected mean experience of male faculty is 8.74 years, and the that of female faculty is about (8.74 - 4.67) = 4.07 years.
+
+# Question 6 (Q4.12)
+
+This problem is for you to see what two-dimensional plots of data will look like when the data are sampled from a variety of distributions. For this problem you will need a computer program that allows you to generate random numbers from given distributions. In each of the cases below, set the number of observations *n* = 300, and draw the indicated graphs. Few programs have easy-to-use functions to generate bivariate random numbers, so in this problem you will generate first the predictor *X*, then the response *Y* given *X*.
+
+## 4.12.1
+
+Generate *X* and *e* to be independent standard normal random vectors of length *n*. Compute *Y* = 2 + 3*X* + $\sigma$*e*, where in this problem we take $\sigma$ = 1. Draw the scatterplot of *Y* versus *X*, add the true regression line *Y* = *2* + 3*X*, and the `ols` regression line. Verify that the scatter of points is approximately elliptical, and the regression line is similar to, but not exactly the same as, the major axis of the ellipse.\
+**Answer**:
+
+```{r fig.align="center", fig.height=4.5, fig.width=4.5, message=FALSE, warning=FALSE}
+X <- rnorm(300)
+e <- rnorm(300)
+Y_1 <- 2 + 3*X + e
+m_1 = lm(Y_1 ~ X)
+# show the true size of the scatter "ellipse"
+plot(Y_1 ~ X, pch=20, asp=1, main = 'sigma=1') # set "asp" (aspect ratio) as 1
+abline(a=2, b=3, col="red", lwd=2)
+abline(m_1, col='blue', lwd=2)
+
+library(ellipse)
+shape_1 <- ellipse(cor(X, Y_1), scale=c(sd(X),sd(Y_1)), center = c(mean(X), mean(Y_1)),
+                 type="l", level = 0.95)
+lines(shape_1, col="skyblue", lwd=2)
+legend("topleft", legend=c("Data Ellipse", "True Regression Line", "OLS Regression Line"), 
+       col=c("skyblue", "red", "blue"), lwd=2, cex=0.5)
+ellipse_data_1 <- as.data.frame(shape_1)
+```
+
+Therefore, the scatter of points is approximately elliptical.
+
+```{r warning=FALSE}
+round(summary(m_1)$coef, 3)
+```
+
+Since the estimated values of the `OLS` regression coefficients are approximately about 2 (intercept) and 3 (slope), respectively, but not equal to. Meanwhile, the true regression line and `OLS` regression line are both near the major axis of the ellipse formed by the scatter of points.\
+=\> Hence, the regression line is similar to, but not exactly the same as, the major axis of the ellipse.
+
+## 4.12.2
+
+Repeat Problem 4.12.1 twice, first set $\sigma$ = 3 and then repeat again with $\sigma$ = 6. How does the scatter of points change as $\sigma$ changes?\
+**Answer**:
+
+-   $\sigma$ = 1:
+
+    ```{r Eigenvalue_1, message=FALSE, warning=FALSE}
+    eigenvalues_1 <- eigen(cov(shape_1[, c("x", "y")]))$values
+    major_axis_length_1 <- 2 * sqrt(eigenvalues_1[1])
+    minor_axis_length_1 <- 2 * sqrt(eigenvalues_1[2])
+    eccentricity_1 <- sqrt(1 - (minor_axis_length_1 / major_axis_length_1)^2)
+    orientation_angle_1 <- atan2(eigen(cov(shape_1[, c("x", "y")]))$vectors[2, 1], 
+                                 eigen(cov(shape_1[, c("x", "y")]))$vectors[1, 1])
+    orientation_angle_degrees_1 <- orientation_angle_1 * (180 / pi)
+    cat("Major Axis Length_1:", major_axis_length_1, "\n")
+    cat("Minor Axis Length_1:", minor_axis_length_1, "\n")
+    cat("Eccentricity_1:", eccentricity_1, "\n")
+    cat("Orientation Angle_1 (degrees):", orientation_angle_degrees_1, "\n")
+    ```
+
+<!-- -->
+
+-   $\sigma$ = 3:
+
+    ```{r warning=FALSE, fig.height = 4.5, fig.width = 4.5, fig.align = "center"}
+    Y_3 <- 2 + 3*X + 3*e
+    m_3 = lm(Y_3 ~ X)
+    plot(Y_3 ~ X, pch=20, asp=1, main = 'sigma=3')
+    abline(a=2, b=3, col="red", lwd=2)
+    abline(m_3, col='blue', lwd=2)
+    shape_3 <- ellipse(cor(X, Y_3), scale=c(sd(X),sd(Y_3)), center = c(mean(X), mean(Y_3)),
+                     type="l", level = 0.95, col="skyblue")
+    lines(shape_3, col="skyblue", lwd=2)
+    legend("topleft", legend=c("Data Ellipse", "True Regression Line", "OLS Regression Line"), 
+           col=c("skyblue", "red", "blue"), lwd=2, cex=0.5)
+
+    eigenvalues_3 <- eigen(cov(shape_3[, c("x", "y")]))$values
+    major_axis_length_3 <- 2 * sqrt(eigenvalues_3[1])
+    minor_axis_length_3 <- 2 * sqrt(eigenvalues_3[2])
+    eccentricity_3 <- sqrt(1 - (minor_axis_length_3 / major_axis_length_3)^2)
+    orientation_angle_3 <- atan2(eigen(cov(shape_3[, c("x", "y")]))$vectors[2, 1], 
+                                 eigen(cov(shape_3[, c("x", "y")]))$vectors[1, 1])
+    orientation_angle_degrees_3 <- orientation_angle_3 * (180 / pi)
+    cat("Major Axis Length_3:", major_axis_length_3, "\n")
+    cat("Minor Axis Length_3:", minor_axis_length_3, "\n")
+    cat("Eccentricity_3:", eccentricity_3, "\n")
+    cat("Orientation Angle_3 (degrees):", orientation_angle_degrees_3, "\n")
+    ```
+
+<!-- -->
+
+-   $\sigma$ = 6:
+
+    ```{r warning=FALSE, fig.height = 4.5, fig.width = 4.5, fig.align = "center"}
+    Y_6 <- 2 + 3*X + 6*e
+    m_6 = lm(Y_6 ~ X)
+    plot(Y_6 ~ X, pch=20, asp=1, main = 'sigma=6')
+    abline(a=2, b=3, col="red", lwd=2)
+    abline(m_6, col='blue', lwd=2)
+    shape_6 <- ellipse(cor(X, Y_6), scale=c(sd(X),sd(Y_6)), center = c(mean(X), mean(Y_6)),
+                     type="l", level = 0.95, col="skyblue")
+    lines(shape_6, col="skyblue", lwd=2)
+    legend("topleft", legend=c("Data Ellipse", "True Regression Line", "OLS Regression Line"), 
+           col=c("skyblue", "red", "blue"), lwd=2, cex=0.5)
+
+    eigenvalues_6 <- eigen(cov(shape_6[, c("x", "y")]))$values
+    major_axis_length_6 <- 2 * sqrt(eigenvalues_6[1])
+    minor_axis_length_6 <- 2 * sqrt(eigenvalues_6[2])
+    eccentricity_6 <- sqrt(1 - (minor_axis_length_6 / major_axis_length_6)^2)
+    orientation_angle_6 <- atan2(eigen(cov(shape_6[, c("x", "y")]))$vectors[2, 1], 
+                                 eigen(cov(shape_6[, c("x", "y")]))$vectors[1, 1])
+    orientation_angle_degrees_6 <- orientation_angle_6 * (180 / pi)
+    cat("Major Axis Length_6:", major_axis_length_6, "\n")
+    cat("Minor Axis Length_6:", minor_axis_length_6, "\n")
+    cat("Eccentricity_6:", eccentricity_6, "\n")
+    cat("Orientation Angle_6 (degrees):", orientation_angle_degrees_6, "\n")
+    ```
+
+Therefore, with the increase of $\sigma$ (from 1 to 3 and then to 6), we can find:
+
+-   The shape of ellipse of scatter points will not change a lot as we cannot see large difference between the eccentricities of three scatterplots.
+
+-   Though without changes in the shape, the size of the scatterplots gets larger as the length of both the major and minor axes are increased.
+
+-   The scatterplot generally rotates counterclockwise as the orientation angle gets larger (still smaller than 90 degrees).
+
+-   The true regression line and the `OLS` regression line are still quite over-lined, but the regression line is **not** similar to the major axis of the ellipse.
+
+## 4.12.3
+
+Repeat Problem 4.12.1, but this time set *X* to have a standard normal distribution and e to have a Cauchy distribution (set $\sigma$ = 1). The easy way to generate a Cauchy is to generate two vectors *V*~1~ and *V*~2~ of standard normal random numbers, and then set *e* = *V*~1~/*V*~2~. With this setup, the values you generate are not bivariate normal because the Cauchy does not have a population mean or variance.\
+**Answer**:
+
+```{r warning=FALSE, fig.height = 4.5, fig.width = 4.5, fig.align = "center"}
+V1 <- rnorm(300)
+V2 <- rnorm(300)
+e2 <- V1 / V2
+Y_cauchy <- 2 + 3*X + e2
+m_cauchy = lm(Y_cauchy ~ X)
+plot(Y_cauchy ~ X, pch=20, asp=1, ylim=c(-65, 65), main = 'A cauchy-distributed error') 
+abline(a=2, b=3, col="red", lwd=2)
+abline(m_cauchy, col='blue', lwd=2)
+
+library(ellipse)
+shape_cauchy <- ellipse(cor(X, Y_cauchy), scale=c(sd(X),sd(Y_cauchy)), 
+                        center = c(mean(X), mean(Y_cauchy)), type="l", level = 0.95)
+lines(shape_cauchy, col="skyblue", lwd=2)
+legend("topleft", legend=c("Data Ellipse", "True Regression Line", "OLS Regression Line"), 
+       col=c("skyblue", "red", "blue"), lwd=2, cex=0.5)
+round(summary(m_1)$coef, 3)
+ellipse_data_cauchy <- as.data.frame(shape_cauchy)
+eigenvalues_cauchy <- eigen(cov(shape_cauchy[, c("x", "y")]))$values
+major_axis_length_cauchy <- 2 * sqrt(eigenvalues_cauchy[1])
+minor_axis_length_cauchy <- 2 * sqrt(eigenvalues_cauchy[2])
+eccentricity_cauchy <- sqrt(1 - (minor_axis_length_cauchy / major_axis_length_cauchy)^2)
+orientation_angle_cauchy <- atan2(eigen(cov(shape_cauchy[, c("x", "y")]))$vectors[2, 1], 
+                             eigen(cov(shape_cauchy[, c("x", "y")]))$vectors[1, 1])
+orientation_angle_degrees_cauchy <- orientation_angle_cauchy * (180 / pi)
+cat("Major Axis Length_cauchy:", major_axis_length_cauchy, "\n")
+cat("Minor Axis Length_cauchy:", minor_axis_length_cauchy, "\n")
+cat("Eccentricity_cauchy:", eccentricity_cauchy, "\n")
+cat("Orientation Angle_cauchy (degrees):", orientation_angle_degrees_cauchy, "\n")
+```
+
+Therefore, the scatter of the points is still approximately elliptical and the regression line is **not** similar to the major axis of the ellipse as well. Now the eccentricity is still quite large and the size is larger compared with a normally distributed $e$. Meanwhile, the rotation angle becomes larger than the ellipse in Problem 4.12.1.

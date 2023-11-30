@@ -1,0 +1,307 @@
+---
+title: "FMPH221 Homework 1"
+author: "Hongjie (Harry) Qian"
+date: "October-06-2023"
+output: pdf_document
+---
+# Question 1 (Q1.1)
+**Question**: **United Nations** (Data file: `UN11`) The data in the file UN11 contains several variables, including `ppgdp`, the gross national product per person in U.S. dollars, and `fertility`, the birth rate per 1000 females, both from the year 2009. The data are for 199 localities, mostly UN member countries, but also other areas such as Hong Kong that are not independent countries. The data were collected from United Nations (2011). We will study the dependence of `fertility` on `ppgdp`.
+
+## **1.1.1** 
+Identify the predictor and the response.  
+***Answer:***  
+Predictor: a function of `ppgdp`;  
+Response: a function of `fertility`.
+
+## **1.1.2** 
+Draw the scatterplot of fertility on the vertical axis versus `ppgdp` on the horizontal axis and summarize the information in this graph. Does a straight-line mean function seem to be plausible for a summary of this graph?  
+***Answer:***  
+Here both methods (`ggplot2` & `plot) are applied to plot the scatterplot.
+```{r echo=TRUE, fig.height=2.7, fig.width=5, fig.align='center', message=FALSE, warning=FALSE}
+library(alr4)
+library(ggplot2)
+ggplot(data=UN11, aes(x=fertility, y=ppgdp)) + geom_point(colour = "#1E90FF") + 
+  labs(x = "Birth Rate per 1000 Female", y = "GDP per person ($)") + theme_bw()
+```
+
+```{r echo=TRUE, fig.height=3.6, fig.width=5, fig.align='center', message=FALSE, warning=FALSE}
+library(alr4)
+plot(ppgdp ~ fertility, data=UN11, xlab="Birth Rate per 1000 Females",
+     ylab="GDP per person ($)", pch=16)
+grid(lty='solid')
+```
+
+And, **NO**, a straight-line mean function does not seem to be plausible for a summary of this graph, since there is no linear pattern for the scatter points in this plot.
+
+## **1.1.3** 
+Draw the scatterplot of log(`fertility`) versus log(`ppgdp`) using natural logarithms. Does the simple linear regression model seem plausible for a summary of this graph? If you use a different base of logarithms, the shape of the graph won’t change, but the values on the axes will change.  
+***Answer:***
+```{r echo=TRUE, fig.height=4, fig.width=6, fig.align='center', message=FALSE, warning=FALSE}
+library(alr4)
+plot(log(ppgdp) ~ log(fertility), data=UN11, xlab="log(Birth Rate per 1000 Females)",
+     ylab="log(GDP per person ($)", pch=16)
+grid(lty='solid')
+```
+Therefore, **YES**, the simple linear regression model seems plausible for a summary of this graph after log transformation. Because the mean function seems linear after the transformation above. Hoewever, there could be *multiple outliers* in the simple linear model where it is adapted.
+
+# Question 2 (Q1.6)
+**Question**: **Professor ratings** (Data file: `Rateprof`) In the website and online forum `RateMyProfessors.com`, students rate and comment on their instructors. Launched in 1999, the site includes millions of ratings on thousands of instructors. The data file includes the summaries of the ratings of 364 instructors at a large campus in the Midwest (Bleske-Rechek and Fritsch, 2011). Each instructor included in the data had at least 10 ratings over a several year period. Students provided ratings of 1–5 on `quality`, `helpfulness`, `clarity`, `easiness` of instructor’s courses, and `raterInterest` in the subject matter covered in the instructor’s courses. The data file provides the averages of these five ratings, and these are shown in the scatterplot matrix in Figure 1.13.  
+Provide a brief description of the relationships between the five ratings.  
+***Answer***: 
+```{r echo=TRUE, fig.height=6.4, fig.width=6.4, fig.align='center', message=FALSE, warning=FALSE}
+library(alr4)
+pairs(~ quality + helpfulness + clarity + easiness + raterInterest, data=Rateprof, pch=20)
+```
+Therefore,
+
+* For `quality`:  
+
+  + A strong linear correlation with `clarity` and `helpfulness`;  
+
+  + A moderate linear correlation with `easiness`;  
+
+  + A weak, or an ambiguous, linear correlation with `raterInterest`.
+
+* For `helpfulness`:
+
+  + A strong linear correlation with `quality` and `clarity`;
+  
+  + A moderate linear correlation with `easiness`;  
+  
+  + A weak, or an ambiguous, linear correlation with `raterInterest`.
+
+* For `clarity`:
+
+  + A strong linear correlation with `quality` and `helpfulness`;
+  
+  + A moderate linear correlation with `easiness`; 
+  
+  + A weak, or an ambiguous, linear correlation with `raterInterest`.
+
+* For `easiness`:
+
+  + A moderate linear correlation with `quality`, `helpfulness`, and `clarity`;
+  
+  + A weak, or an ambiguous, linear correlation with `raterInterest`.
+
+* For `raterInterest`: has no obvious, or has ambiguous, linear correlation with other four variables, `quality`, `helpfulness`, `clarity`, and `easiness`.
+
+# Question 3 (Q2.8)
+**Question**: **Deviations from the mean** Sometimes it is convenient to write the simple linear regression model in a different form that is a little easier to manipulate. Taking Equation (2.1), and adding $\beta_1 \bar{x} -  \beta_1 \bar{x}$, which equals 0, to the right-hand side, and combining terms, we can write 
+$$
+\begin{aligned}
+y_i & =\beta_0+\beta_1 \bar{x}+\beta_1 x_i-\beta_1 \bar{x}+e_i \\
+& =\left(\beta_0+\beta_1 \bar{x}\right)+\beta_1\left(x_i-\bar{x}\right)+e_i \\
+& =\alpha+\beta_1\left(x_i-\bar{x}\right)+e_i
+\end{aligned}
+$$
+where we have defined $\alpha = \beta_0 + \beta_1x$. This is called the deviations from
+the sample mean form for simple regression.  
+PS: Equation (2.1)
+$$
+\begin{aligned}
+\mathrm{E}(Y \mid X=x) & =\beta_0+\beta_1 x \\
+\operatorname{Var}(Y \mid X & =x)=\sigma^2
+\end{aligned}
+$$
+
+## **2.8.1** 
+What is the meaning of the parameter $\alpha$?  
+**Answer**:  
+Since  
+$$
+\begin{aligned}
+y_i & =\beta_0+\beta_1 x_i+(\beta_1 \bar{x}-\beta_1 \bar{x})+e_i \\
+& =(\beta_0+\beta_1 \bar{x})+(\beta_1 x_i-\beta_1 \bar{x})+e_i \\
+& =\left(\beta_0+\beta_1 \bar{x}\right)+\beta_1\left(x_i-\bar{x}\right)+e_i \\
+& =\alpha+\beta_1\left(x_i-\bar{x}\right)+e_i
+\end{aligned}
+$$
+$\therefore \alpha = \beta_0 + \beta_1\bar{x}$  
+Meanwhile, $\mathrm{E}(Y \mid X=x)=\beta_0+\beta_1 x$  
+$\therefore \alpha$ is the mean value of the conditional expectation function on $x$, or $\mathrm{E}(Y \mid X=\bar{x})$.
+
+## **2.8.2**
+Show that the least squares estimates are $\hat{\alpha} = \bar{y}$, $\beta_1$ as given by $\hat{\beta}_1=\frac{\mathrm{SXY}}{\mathrm{SXX}}=r_{x y} \frac{\mathrm{SD}_y}{\mathrm{SD}_x}=r_{x y}\left(\frac{\mathrm{SYY}}{\mathrm{SXX}}\right)^{1 / 2}$.  
+**Answer**:  
+Since $y_i=\alpha+\beta_1\left(x_i-\bar{x}\right)+e_i$, $\mathrm{RSS}(\beta_0,\beta_1) = \sum(y_1-\beta_0-\beta_1x_i)^2$  
+Therefore:  
+$$
+\begin{aligned}
+\mathrm{RSS}(\alpha,\beta_1) & = \sum[y_i-\alpha-\beta_1(x_i-\bar{x})]^2 \\ 
+& = \sum(y_i-\alpha)^2 -2\sum(y_i-\alpha)\beta_1(x_i-\bar{x}) + \sum\beta_1^2(x_i-\bar{x})^2 \\
+& = \sum(y_i-\alpha)^2 -2\beta_1\sum(y_i-\alpha)(x_i-\bar{x}) + \beta_1^2\sum(x_i-\bar{x})^2
+\end{aligned}
+$$
+$\because \sum(y_i-\alpha)(x_i-\bar{x}) =\sum y_i(x_i-\bar{x}) - \alpha\sum (x_i-\bar{x})$  
+and $\mathrm{SXY} = \sum({x_i}-\bar{x})y_i$, $\sum(x_i-\bar{x})=0$  
+$\because \sum(y_i-\alpha)(x_i-\bar{x}) = \mathrm{SXY}$  
+$\mathrm{SXX} = \sum(x_i-\bar{x})^2$  
+$\therefore \mathrm{RSS}(\alpha,\beta_1) = \sum(y_i-\alpha)^2 -2\beta_1\mathrm{SXY} + \beta_1^2 \mathrm{SXX}$  
+$\therefore$
+$$
+\begin{aligned}
+\frac{\partial \mathrm{RSS}(\alpha,\beta_1)}{\partial \alpha} & = -2\sum(y_i-\alpha)=0 \\
+\frac{\partial \mathrm{RSS}(\alpha,\beta_1)}{\partial \beta_1} & = -2\mathrm{SXY} +2\beta_1 \mathrm{SXX}=0
+\end{aligned}
+$$
+$\therefore$  
+$$
+\begin{aligned}
+\sum(y_i-\alpha) = \sum y_i - \alpha n = 0 & \rightarrow \bar{y} = \hat{a} \\
+\beta_1 \mathrm{SXX} = \mathrm{SXY} & \rightarrow \beta_1 = \frac{\mathrm{SXY}}{\mathrm{SXX}}
+\end{aligned}
+$$
+Thus, $\hat{\alpha} = \bar{y}$ is proved.  
+
+Also, we start again from the definition of $\mathrm{RSS}$:  
+$\mathrm{RSS}(\alpha,\beta_1) = \sum[y_i-\alpha-\beta_1(x_i-\bar{x})]^2$
+
+=> $\frac{\partial \mathrm{RSS}}{\partial \alpha} = -2\sum[y_i-\hat{\alpha}-\hat{\beta_1}(x_i-\bar{x})] = 0$
+
+=> $\sum y_i - \sum \hat{\alpha} - \hat{\beta_1}\sum(x_i-\bar{x}) = 0$
+
+=> $n\bar{y} - n\hat{\alpha} - \hat{\beta_1}\sum x_i-\sum\bar{x} = 0$
+
+=> $n\bar{y} - n\hat{\alpha} - \hat{\beta_1}\cdot n\bar{x} - \hat{\beta_1}\cdot n\bar{x} = 0$
+
+=> $n\bar{y} - n\hat{\alpha} = 0$ => $\hat{\alpha} = \bar{y}$
+
+## **2.8.3**
+Find expressions for the variances of the estimates and the covariance between them.  
+**Answer**:  
+
+* For $\mathrm{Var}(\hat{\alpha})$:
+$$
+\begin{aligned}
+\mathrm{Var}(\hat{\alpha}) & = \mathrm{Var}(\bar{y}) \\
+& = \mathrm{Var}(\frac{\sum y}{n}) \\
+& = \frac{Var{\sum y}}{n} \\
+& = \frac{\sigma^2}{n}
+\end{aligned}
+$$
+
+* For $\mathrm{Var}(\beta_1)$:
+$$
+\begin{aligned}
+\mathrm{Var}(\beta_1) & = \mathrm{Var}(\frac{\mathrm {SXY}}{\mathrm {SXX}}) \\
+& = \mathrm{Var}(\frac{x_i-\bar{x}}{\mathrm {SXX}}y_i) \\
+& = \sum(\frac{x_i-\bar{x}}{\mathrm {SXX}})^2 \mathrm{Var}(y_i) \\
+& = \sum\frac{1}{\mathrm {SXX}} \cdot \frac{(x_i-\bar{x})^2}{\mathrm {SXX}} \mathrm{Var}(y_i) \\
+& = \frac{1}{\mathrm {SXX}} \sum \frac{(x_i-\bar{x})^2}{\mathrm{SXX}}\mathrm{Var}(y_i) \\
+& = \frac{1}{\mathrm {SXX}} \frac{\sum (x_i-\bar{x})^2}{\mathrm{SXX}}\mathrm{Var}(y_i) \\
+& = \frac{1}{\mathrm {SXX}} \cdot 1 \cdot \sigma^2 \\
+& = \frac{\sigma^2}{\mathrm {SXX}}
+\end{aligned}
+$$
+
+$\therefore \mathrm{Var}(\hat{\alpha})=\frac{\sigma^2}{n}$, $\mathrm{Var}(\beta_1)= \frac{\sigma^2}{\mathrm {SXX}}$  
+And: $\mathrm{Cov}(\hat{\alpha},\hat{\beta_1}) = 0$
+
+# Question 4 (Q2.16)  
+**Question**: **United Nations data** (Data file: `UN11`)  
+Refer to the UN data in Problem 1.1.
+
+## **2.16.1**  
+Use a software package to compute the simple linear regression model corresponding to the graph in Problem 1.1.3.  
+**Answer**:  
+```{r}
+library(alr4)
+lm_1 <- lm(ppgdp ~ fertility, data=UN11)
+print(lm_1)
+```
+
+## **2.16.2** 
+Draw a graph of log(`fertility`) versus log(`ppgdp`), and add the fitted line to the graph.  
+**Answer**:  
+```{r}
+library(alr4)
+plot(log(fertility) ~ log(ppgdp), data=UN11, xlab="log(Birth Rate per 1000 Females)",
+     ylab="log(GDP per person ($)", pch=16)
+grid(lty='solid')
+lm_2 <- lm(log(fertility) ~ log(ppgdp), UN11)
+abline(lm_2, col='red', lwd=2)
+```
+
+## **2.16.3** 
+Test the hypothesis that the slope is 0 versus the alternative that it is negative (a one-sided test). Give the significance level of the test and a sentence that summarizes the result.  
+**Answer**:  
+```{r}
+round(summary(lm_2)$coefficients, 3)
+```
+Therefore, the significance level of the test is 0. This implicates that the conditional probability of $\beta_1$ and $\beta_0$ is 0 and we reject the null hypothesis.
+
+Meanwhile, we could also get the *p*-value via calculation as below:
+```{r}
+t <- (-0.207-0)/0.014
+p_values <- pt(-abs(t), 199-2)
+round(print(p_values), 3)
+```
+
+We then get the same result as above.
+
+## **2.16.4** 
+Give the value of the coefficient of determination, and explain its meaning.  
+**Answer**:  
+```{r}
+summary(lm_2)$r.squared
+```
+
+The value of the coefficient of determination ($R^2$) is 0.5236. This implicates that the proportion of variability of the $\log$(`ppgdp`) explained by regression on the $\log$(`fertility`) is 52.36%.
+
+## **2.16.5**
+For a locality not in the data with `ppgdp` = 1000, obtain a point prediction and a 95% prediction interval for log(`fertility`). If the interval (*a*, *b*) is a 95% prediction interval for log(`fertility`), then a 95% prediction interval for fertility is given by ($\exp(a)$, $\exp(b)$). Use this result to get a 95% prediction interval for `fertility`.  
+**Answer**:  
+```{R}
+library(alr4)
+df <- data.frame(ppgdp=1000)
+fpred <- predict(lm_2, df,interval="prediction",level=0.95)
+print(round(c(fpred[1]), 3))
+print(round(c(exp(fpred[2]), exp(fpred[3])), 3))
+fpred = as.data.frame(fpred)
+fpred_2 <- predict(lm_2, df,interval="confidence",level=0.95)
+print(round(c(fpred_2[1]), 3))
+print(round(c(exp(fpred_2[2]), exp(fpred_2[3])), 3))
+```
+Therefore, in the locality, which is not in the data and with `ppgdp` = 1000, we get a point prediction of `fertility` of 1.235, and the 95% prediction interval for fertility is **1.870** (as the lower range) and **6.317** (as the upper range), AKA **(1.870, 6.317)**.  
+
+Meanwhile, the 95% confidence interval for fertility is also calculated, as **3.234** (as the lower range) and **3.652**(as the upper range), AKA **(3.234, 3.652)**.
+
+## **2.16.6** 
+Identify (1) the locality with the highest value of `fertility`; (2) the locality with the lowest value of `fertility`; and (3) the two localities with the largest positive residuals from the regression when both variables are in log scale, and the two countries with the largest negative residuals in log scales.  
+**Answer**:  
+```{R}
+# Highest value of `fertility`
+print(UN11[UN11$fertility == max(UN11$fertility),][1])
+```
+=> The locality with the highest value of `fertility` is **Niger** in Africa.
+
+```{R}
+# Lowest value of `fertility`
+print(UN11[UN11$fertility == min(UN11$fertility),][1])
+```
+=> The locality with the lowest value of `fertility` **Bosnia and Herzegovina** in Europe.
+
+```{R}
+# Two Largest positive residuals
+print(sort(residuals(lm_2))[1])
+print(sort(residuals(lm_2))[2])
+```
+=> The two locality with the largest positive residuals from the regression when both variables are in log scale is **Bosnia and Herzegovina**, and then **Moldova**.
+
+```{R}
+# Numerical count
+print(nrow(UN11))
+```
+=> There are 199 localities in the `UN11` data set.
+
+```{R}
+# Two Largest negative residuals
+print(sort(residuals(lm_2))[198])
+print(sort(residuals(lm_2))[199])
+```
+=> The two locality with the largest negative residuals from the regression when both variables are in log scale is **Equatorial Guinea**, and then **Angola**.
+
+# Source
+
+<font size=4>***Weisberg, 4th edition.Problems: 1.1, 1.6, 2.8, 2.16***</font>  

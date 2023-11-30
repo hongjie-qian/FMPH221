@@ -1,0 +1,506 @@
+---
+title: "FMPH-Homework-3"
+author: "Hongjie (Harry) Qian"
+date: "2023-11-06"
+output: pdf_document
+---
+
+# Question 1 (Q5.4)
+
+**Question** (Data file: `MinnLand`) The data file includes information on nearly every agricultural land sale in the six major agricultural regions of Minnesota for the period 2002--2011. The data are from the Minnesota Department of Revenue and were provided by Steven Taff. Two of the variables in the data are `acrePrice`, the selling price per acre adjusted to a common date within a year, and `year`, the year of the sale. All the variables are described in Table 5.8.
+
+<center>
+
+![Minnesota Agricultural Land Sales](/Users/htsien/Academia/UCSD/Year%201%20Term%201/FMPH221%20Biostatistical%20Methods%20I/Homework/Hwk3/Table%205.8){width="80%"}
+
+</center>
+
+## 5.4.1
+
+Draw boxplots of log(`acrePrice`) versus `year`, and summarize the information in the boxplots. In particular, housing sales prices in the United States were generally increasing from about 2002--2006, and then began to fall beginning in 2007 or so. Is that pattern apparently repeated in Minnesota farm sales?\
+**Answer**:\
+
+```{r echo=TRUE, fig.height=4.5, fig.width=8, fig.align='center', message=FALSE, warning=FALSE}
+library(alr4)
+library(ggplot2)
+
+# Plot the boxlpot with Boxplot()
+bp <- Boxplot(log(acrePrice) ~ year, data=MinnLand)
+title("Boxplot of Log Acre Price by Year")
+
+# Plot the boxplot with ggplot2: geom_boxplot()
+ggplot(MinnLand, aes(x=as.factor(year), y=log(acrePrice))) + 
+  geom_boxplot() +
+  xlab("Year") + 
+  ylab("Log of Acre Price") +
+  ggtitle("Boxplot of Log Acre Price by Year") +
+  theme_bw() +  
+  theme(axis.text.x = element_text(angle = 90, hjust = 1), 
+        plot.title = element_text(hjust = 0.5)) 
+```
+
+Summary of information in the boxplot:
+
+-   From 2002 to 2003, the **median** of sale prices each year decreased a little bit; from 2003 to 2006, there were a steady increase in the median of sale prices.
+
+-   From 2007 to 2011, there was an increase of the **median** of prices between 2007 and 2008, while since 2008, there were not obvious changes between the median numbers of each year (2008-2011).
+
+-   From 2002 to 2006, the **outliers** of the sale prices in Minnesota were witnessed on both top and bottom values; while from 2007 to 2011, the outliers were briefly on the bottom.
+
+-   Therefore, the **average** sale prices in Minnesota increased gradually between 2002 and 2006, and stayed steady generally between 2007 and 2001.
+
+=\> The pattern, where there was a general increase from about 2002--2006, and then a fall beginning in 2007 or so, **DID NOT** apparently repeat in Minnesota farm sales.
+
+## 5.4.2
+
+Fit a regression model with log(`acrePrice`) as the response and a factor representing the year. Provide an interpretation of the estimated parameters. Interpret the t-statistics. (*Hint*: Since `year` is numeric, you may need to turn it into a factor.)\
+**Answer**:\
+
+```{r}
+library(alr4)
+MinnLand$year <- factor(MinnLand$year) # convert numerical "year" into factors
+class(MinnLand$year) # check whether "year" is a factorial variable
+levels(MinnLand$year) # check levels in the "year" factorial variable
+lm542 <- lm(log(acrePrice) ~ year, data=MinnLand)
+summary(lm542)
+```
+
+-   Interpretation of the estimated parameters (`Estimate` in the table):
+    -   For the intercept (`(Intercept)` in the result table), the estimated parameter represents the mean of log(`acrePrice`) for 2002. The p-value for the estimated value of the intercept is small enough to be significant enough and the estimated value could actually represents the mean value of sale price per acre (USD) in 2002.
+    -   For all other estimates, from `year2003` to `year2011`, the estimated parameters represents the mean difference between each year (except 2002) with the 2002.
+-   Interpretation of t-statistics: the t-statistics (`t value`):
+    -   For each estimated values, the t-statistics indicate how many standard errors the coefficient estimate is away from zero.
+    -   Since the p-values for these estimated coefficients, expect year 2003, are small enough to be significant, therefore we can say the estimated values of these coefficients in the linear model, except for year 2003, could truly represent the mean difference between certain year and year 2002.
+    -   Seen from all the `t-value`s, the t-statistics for 2003 was negative while positive for all other years. Therefore, the coefficient of year 2003 in this linear model with intercept was more likely to be zero. For all other years, the coefficients were likely to be positive and with larger with larger t-statistics values.
+
+## 5.4.3
+
+Fit the regression model as in the last subproblem, but this time omit the intercept. Show that the parameter estimates are the means of log(`acrePrice`) for each year. The standard error of the sample mean in year $j$ is $\mathrm{SD}_j / \sqrt{n_j}$ , where $\mathrm{SD}_j$ and $n_j$ are the sample standard deviation and sample size of the for the *j*^th^ year. Show that the standard errors of the regression coefficients are not the same as these standard errors and explain why they are different.\
+**Answer**:
+
+```{r}
+lm543 <- lm(log(acrePrice) ~ -1 + year, data=MinnLand)
+summary(lm543)$coef
+# Verifty parameters are means of log(acrePrice)
+for (i in levels(MinnLand$year)) {
+  print(round(mean(log(subset(MinnLand, year==as.numeric(i))$acrePrice)),6))
+  }
+# Verifty SEs of regression coefficients are different from SDs of sample means
+for (i in levels(MinnLand$year)){
+  std_dev <- sd(log(subset(MinnLand, year==as.numeric(i))$acrePrice))
+  n_j <- nrow(subset(MinnLand, year==as.numeric(i)))
+  se <- std_dev/sqrt(n_j)
+  print(round(se,8))
+}
+```
+
+-   **Parameter estimates** ("`Estimate`" in the result table): we can see from our calculations that the parameter estimates **are exactly the same as** the means of log(`acrePrice`) for each year.
+
+-   **Standard errors**: standard errors of the regression coefficients ("`Std. Error`" in the result table) are **not the same** as these standard errors.\
+    Reason:
+
+    -   The calculated standard error values showed that the sample standard deviation was divided by the [sample size]{.underline}, which was also the row number ("`nrow`"), [at certain year ("level")]{.underline}.
+
+    -   While the standard errors of each estimated coefficients were the result of standard deviation divided by the the [overall sample size]{.underline} from [all levels]{.underline} of the factorial variable `year`.
+
+# Question 2 (Q5.9)
+
+(Data file: `salarygov`) The data file gives the maximum monthly salary for 495 nonunionized job classes in a midwestern governmental unit in 1986. The variables are described in Table 5.9.
+
+<center>
+
+![The Governmental Salary Data](/Users/htsien/Academia/UCSD/Year%201%20Term%201/FMPH221%20Biostatistical%20Methods%20I/Homework/Hwk3/Table%205.9){width="80%"}
+
+</center>
+
+## 5.9.1
+
+Examine the scatterplot of `MaxSalary` versus `Score`, and verify that simple regression provides a poor description of this figure.\
+**Answer**:\
+
+```{r, fig.height=6, fig.width=8, fig.align='center'}
+plot(MaxSalary ~ Score, data=salarygov, xlab="Score for job class",
+     ylab="Maximum salary for employees ($)", pch=16)
+lm_x <- lm(MaxSalary ~ Score, data=salarygov)
+abline(lm_x, col='red', lwd=2)
+plot(lm_x,1)
+```
+
+Simple linear regression provides a poor description of this figure, because:
+
+-   The variability of of `MaxSalary` increases with the increase of Score.
+
+-   The mean function, as the foundation of linear regression, has obviously curvature with the increase of `Score`.
+
+## 5.9.2
+
+Fit the regression with response `MaxSalary` and regressors given by B-splines, with d given by 4, 5, and 10. Draw the fitted curves on a figure with the data and comment.\
+**Answer**:\
+
+```{r}
+library(splines)
+lm592_4 <- lm(MaxSalary ~ bs(Score, df=4), data=salarygov)
+lm592_5 <- lm(MaxSalary ~ bs(Score, df=5), data=salarygov)
+lm592_10 <- lm(MaxSalary ~ bs(Score, df=10), data=salarygov)
+summary(salarygov)
+# Draw the splines with lines()
+plot(MaxSalary ~ Score, data=salarygov, xlab="Score for job class",
+     ylab="Maximum salary for employees ($)", pch=16)
+lines(80:1100, predict(lm592_10, data.frame(Score=80:1100)), 
+      lwd=2, lty=1, col='purple')
+lines(80:1100, predict(lm592_5, data.frame(Score=80:1100)), 
+      lwd=2, lty=1, col='red')
+lines(80:1100, predict(lm592_4, data.frame(Score=80:1100)), 
+      lwd=2, lty=1, col='blue')
+legend("topleft", 
+       title = "Degree of freedom",
+       legend = c("df=10","df=5","df=4"), 
+       col = c("purple","red","blue"), 
+       lwd = 2, 
+       cex = 0.8) # legend
+# Draw the splines with ggplots
+df <- data.frame(x = salarygov$Score, y = salarygov$MaxSalary)
+ggplot(df, aes(x, y)) +
+  geom_point() +
+  geom_smooth(aes(colour = "df = 10"), method = "lm", 
+              formula = y ~ splines::bs(x, df = 10), se = FALSE) +
+  geom_smooth(aes(colour = "df = 05"), method = "lm", 
+              formula = y ~ splines::bs(x, df = 5), se = FALSE) +
+  geom_smooth(aes(colour = "df = 04"), method = "lm", 
+              formula = y ~ splines::bs(x, df = 4), se = FALSE) +
+  theme_bw() +
+  xlab("Score for job class") + 
+  ylab("Maximum salary for employees ($)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_colour_manual(values = c("df = 10" = "purple", "df = 05" = "red", 
+                                 "df = 04" = "blue"),name = "Degree of Freedom")
+```
+
+Comment:
+
+-   All the three B-spline models fit the original `MaxSalary` \~ `Score` data very well, especially with the increase of *df*.
+
+-   However, if we consider the reality, the models with higher *df* could lead to unrealistic results at boundaries and the multiple curvatures in the fitted lines when *df* = 10 were not creditable due to over-fitting.
+
+-   When it comes for *df* = 5, the fitting is good similarly to the *df* = 4 case, but based on the "Parsimony" philosophy, we should better choose the simpler model, which is *df* = 4.
+
+-   Therefore, we could say when *df* = 4, the B-spline model fits the original `MaxSalary` \~ `Score` data pretty well and at an appropriate level.
+
+## 5.9.3
+
+According to Minnesota statutes, and probably laws in other states as well, a job class is considered to be female dominated if 70% of the employees or more in the job class are female. These data were collected to examine whether female-dominated positions are compensated at a lower level, adjusting for `Score`, than are other positions. Create a factor with two levels that divides the job classes into female dominated or not. Then, fit a model that allows for a separate B-spline for `Score` for each of the two groups. Since the coefficient estimates for the B-splines are uninterpretable, summarize the results using an effects plot. If your program does not allow you to use B-splines, use quadratic polynomials.\
+**Answer**:\
+Based on our assumption in **5.9.2**, we use the most appropriate *d* value, which is 4 (***d*** **= 4**), in **5.9.3**.
+
+```{r echo=TRUE, fig.height=4, fig.width=6, fig.align='center', warning=FALSE}
+salarygov$female_percentage <- salarygov$NW / salarygov$NE
+salarygov$female_dominated <- ifelse(salarygov$female_percentage >= 0.7, 1, 0)
+salarygov$female_dominated <- as.factor(salarygov$female_dominated) 
+class(salarygov$female_dominated) # check whether a factorial variable
+levels(salarygov$female_dominated)
+bs_Score <- bs(salarygov$Score, degree=4)
+lm_593 <- lm(MaxSalary ~ bs(Score, df=4)*female_dominated, data=salarygov)
+#lm_593 <- lm(MaxSalary ~ bs_Score*female_dominated, data=salarygov)
+#lm_593 <- lm(MaxSalary ~ bs_Score + female_dominated + bs_Score:female_dominated, data=salarygov)
+summary(lm_593)$coef
+
+# Plotting of fitted model: response ~ continuous + factorial regressor 
+score_grid <- with(salarygov, seq(min(Score), max(Score), 
+                                  length.out = 200)) # Create a Score grid
+prediction_data <- expand.grid(
+  Score = score_grid,
+  female_dominated = levels(factor(salarygov$female_dominated))
+) # Create a data frame for prediction
+prediction_data$bs_Score <- bs(prediction_data$Score, degree=4)
+prediction_data$MaxSalary <- predict(lm_593, newdata = prediction_data)
+
+## Draw the fitted lines with B-splines
+group_colors <- c("1" = "blue", "0" = "red")
+plot(salarygov$Score, salarygov$MaxSalary, 
+     xlab = "Score for job class", ylab = "Maximum salary for employees ($)", pch = 19,
+     col = group_colors[as.character(salarygov$female_dominated)],
+     main = "B-splines fitting (df=4)")  # Scatterplot
+
+for (level in levels(salarygov$female_dominated)) {
+  level_data <- subset(prediction_data, female_dominated == level)
+  lines(level_data$Score, level_data$MaxSalary, col = group_colors[level], 
+        lwd = 2)
+} # Fitted line(s)
+legend("topleft", title = "female_dominated",legend = names(group_colors), col = group_colors, lwd = 2, 
+       cex = 0.8) # legend
+
+
+## Draw with ggplot2
+ggplot(salarygov, aes(x = Score, y = MaxSalary, color = female_dominated)) +
+  geom_point() +
+  geom_line(data = prediction_data, aes(x = Score, y = MaxSalary, group = female_dominated), size = 1) +
+  labs(title = "B-splines fitting (df=4)",
+       x = "Score for job class",
+       y = "Maximum salary for employees ($)") +
+  theme_bw()
+
+# Effects plot
+plot(allEffects(lm_593), grid=TRUE, multiline=TRUE)
+```
+
+Comment:
+
+-   We can see that when ***d*** **= 4**, there are differences between the maximum salaries (`MaxSalary`) of female-dominated job classes and those of not-female-dominated job classes visually.
+
+-   However, due to the lack of data of female-dominated job classes in a higher score region, there is a distinctive difference between two groups, especially when `Score` \> 800. Therefore, we cannot comment under that scenario.
+
+-   Seeing from the numeric estimates of the B-splines coefficients, the estimated difference between female-dominated and not-female-dominated job classes is that the maximum salaries for female-dominated job classes are approximately 365.4 USD on average more than those of not-female-dominated job classes.
+
+-   However, if we let ***d*** **=3**, which is in a more usual case: we could see that the maximum salaries for female-dominated job classes are approximately 267.6 USD on average less than those of not-female-dominated job classes, which is more aligned with the scatterplot.
+
+    ```{r echo=FALSE, fig.height=4, fig.width=6, fig.align='center', warning=FALSE}
+    bs_Score <- bs(salarygov$Score, degree=3)
+    lm_593 <- lm(MaxSalary ~ bs(Score, df=3)*female_dominated, data=salarygov)
+    #lm_593 <- lm(MaxSalary ~ bs_Score*female_dominated, data=salarygov)
+    #lm_593 <- lm(MaxSalary ~ bs_Score + female_dominated + bs_Score:female_dominated, data=salarygov)
+    summary(lm_593)$coef
+
+    # Plotting of fitted model: response ~ continuous + factorial regressor 
+    score_grid <- with(salarygov, seq(min(Score), max(Score), 
+                                      length.out = 200)) # Create a Score grid
+    prediction_data <- expand.grid(
+      Score = score_grid,
+      female_dominated = levels(factor(salarygov$female_dominated))
+    ) # Create a data frame for prediction
+    prediction_data$bs_Score <- bs(prediction_data$Score, degree=3)
+    prediction_data$MaxSalary <- predict(lm_593, newdata = prediction_data)
+
+    ## Draw the fitted lines with B-splines
+    group_colors <- c("1" = "blue", "0" = "red")
+    plot(salarygov$Score, salarygov$MaxSalary, 
+         xlab = "Score for job class", ylab = "Maximum salary for employees ($)", pch = 19,
+         col = group_colors[as.character(salarygov$female_dominated)],
+         main = "B-splines fitting (df=3)")  # Scatterplot
+
+    for (level in levels(salarygov$female_dominated)) {
+      level_data <- subset(prediction_data, female_dominated == level)
+      lines(level_data$Score, level_data$MaxSalary, col = group_colors[level], 
+            lwd = 2)
+    } # Fitted line(s)
+    legend("topleft", title = "female_dominated",legend = names(group_colors), col = group_colors, lwd = 2, 
+           cex = 0.8) # legend
+
+
+    ## Draw with ggplot2
+    ggplot(salarygov, aes(x = Score, y = MaxSalary, color = female_dominated)) +
+      geom_point() +
+      geom_line(data = prediction_data, aes(x = Score, y = MaxSalary, group = female_dominated), size = 1) +
+      labs(title = "B-splines fitting (df=3)",
+           x = "Score for job class",
+           y = "Maximum salary for employees ($)") +
+      theme_bw()
+
+    # Effects plot
+    plot(allEffects(lm_593), grid=TRUE, multiline=TRUE)
+    ```
+
+-   Since the coefficient estimates for the B-splines are uninterpretable, the comments I made for the exact difference between female-dominated subgroup and not-female-dominated subgroup are not precise and true. But anyway, they still picture a rough description between such difference.
+
+# Question 3 (Q5.10)
+
+(Data file: `MinnLand`) Refer to Problem 5.4. Another variable in this data file is the `region`, a factor with six levels that are geographic identifiers.
+
+## 5.10.1
+
+Assuming both `year` and `region` are factors, consider the two mean functions given in [Wilkinson--Rogers notation]{.underline} as:
+
+**(a)** `log(acrePrice) ~ year + region`
+
+**(b)** `log(acrePrice) ~ year + region + year:region`
+
+Explain the difference between these two models (no fitting is required for this problem).\
+**Answer**:\
+Difference between two models:
+
+-   An additional interaction term is added to model **(b)**.
+
+-   Therefore:
+
+    -   In model **(a)**: the change of `log(acrePrice)` within each `region` could be the same over the same period of time (`year`).
+    -   In model **(b)**: the change of `log(acrePrice)` within each `region` could be different over the same period of time (`year`) since the appearance of the interaction variable.
+
+## 5.10.2
+
+Fit model **(b)**. Examining the coefficients of this model is unpleasant because there are so many of them, and summaries either using graphs or using tests are required. We defer tests until the next chapter. Draw [an effects plot]{.underline} for the year by region [interaction]{.underline} and summarize the graph or graphs.\
+**Answer**:
+
+```{r, fig.height=4, fig.width=6, fig.align='center'}
+library(alr4)
+MinnLand$LacrePrice <- log(MinnLand$acrePrice)
+lm_5102_a <- lm(LacrePrice ~ year + region, data=MinnLand)
+lm_5102_b <- lm(LacrePrice ~ year*region, data=MinnLand)
+# alternative: lm(log(acrePrice) ~ year + region + year:region
+class(MinnLand$region) # check whether "region" is a factorial variable
+levels(MinnLand$region) # check levels in the "year" factorial variable
+
+summary(MinnLand) # obtain rough domains for `region` and log(acrePrice) OR LacrePrice
+
+summary(lm_5102_b)$coef
+
+# See each region separately
+plot(allEffects(lm_5102_b), rotx=90, ylab="Sale price per acre ($)", default.levels=100)
+# Put all regions on the same canvas
+plot(allEffects(lm_5102_b), rotx=00, ylab="Sale price per acre ($)", 
+     multiline=TRUE, default.levels=100)
+```
+
+=\> Summary
+
+-   Based on the separate-region effect plot, we can see that the average sale prices per acre among all regions showed similar trends between 2002 and 2011 with minor differences.
+
+-   However, if we put all the effect curves on the same canvas, the average sale prices per acre in the Northwest region were obviously lower than all other regions between 2001 and 2011, while those of the West Central region were lower than the four remaining regions but not that much in the case of the Northwest region.
+
+# Question 4 (Q6.7)
+
+(Data file: `fuel2001`) With the fuel consumption data, consider the following two models in Wilkinson--Rogers notation:
+
+<center>
+
+`fuel~Tax+Dlic+Income+log(Miles)` **(6.22)**
+
+`fuel~log(Miles)+Income+Dlic+Tax` **(6.23)**
+
+</center>
+
+These models are of course the same, as they only differ by the order in which the regressors are written.
+
+## 6.7.1
+
+Show that the Type I `ANOVA` for **(6.22)** and **(6.23)** are different. Provide an interpretation of each of the tests.\
+**Answer**:\
+
+```{r}
+# Add newly define variables to the dataset
+fuel2001$Dlic <- fuel2001$Drivers/fuel2001$Pop
+fuel2001$fuel <- 1000*fuel2001$FuelC/fuel2001$Pop
+# Type I ANOVA of linear model (6.22)
+lm_622 <- lm(fuel ~ Tax + Dlic + Income + log(Miles), data=fuel2001)
+anova(lm_622)
+```
+
+Interpretation of Type I `ANOVA` in model **(6.22)**:
+
+-   According to the Type I ANOVA result of model (6.22), we can see that all four variables, including `Tax`, `Dlic`, `Income`, and `log(Miles)`, reject their null hypothesis (*H*~0~), where the variable of the coefficient is zero.
+
+-   Therefore, all four variables are significantly contributing to the linear model (6.22).
+
+-   By comparing the F-statistics and p-values, among four variables, `Dlic` contributes the most to the linear model, `Income` contributes the second most, `log(Miles)` contributes the third most, and `Tax` contributes the least but still significantly.
+
+```{r}
+# Type I ANOVA of linear model (6.23)
+lm_623 <- lm(fuel ~ log(Miles) + Income + Dlic + Tax, data=fuel2001)
+anova(lm_623)
+```
+
+Interpretation of Type I `ANOVA` in model **(6.23)**:
+
+-   According to the Type I `ANOVA` result of model (6.23), we can see that all four variables, including `log(Miles)`, `Income`, `Dlic`, and `Tax`, reject their null hypothesis (*H*~0~), where the variable of the coefficient is zero.
+
+-   Therefore, all four variables are significantly contributing to the linear model (6.23).
+
+-   By comparing the F-statistics and p-values, among four variables, `log(Miles)` contributes the most to the linear model, `Dlic` contributes the second most, `Income` contributes the third most, and `Tax` contributes the least but still significantly.
+
+But if we see the Type I `ANOVA` results of both models comprehensively, their results are quite different in sum of square values, F-statistics and subsequently the p-values due to the different variable input orders. Hence, the significant levels of each variables are different in the two Type I `ANOVA` test.
+
+=\> Overall, we can see that Type I `ANOVA` conducts the tests sequentially based on the input order.
+
+## 6.7.2
+
+Show that the Type II `ANOVA` is the same for the two models. Which of the Type II tests are equivalent to Type I tests?\
+**Answer**:\
+
+```{r}
+# Type II ANOVA of linear model (6.22)
+Anova(lm_622)
+# Type II ANOVA of linear model (6.23)
+Anova(lm_623)
+# Compare two linear models
+anova(lm_622,lm_623)
+```
+
+Interpretation of Type II `ANOVA` tests in both model **(6.22)** and model **(6.23)**:
+
+-   The F-statistics, p-values, and significance levels of four variables, including `log(Miles)`, `Income`, `Dlic`, and `Tax`, are all the same between two linear models that are different in the input order of included variables. If we conducted the `ANOVA` test between two models, we could find that their results are exactly the same.
+
+-   In both models, all four variables reject their null hypothesis (*H*~0~), where the variable of the coefficient is zero.
+
+-   Therefore, all four variables are significantly contributing to both linear models.
+
+-   In both models, by comparing the F-statistics and p-values, among four variables, `Dlic` contributes the most to the linear model, `log(Miles)` contributes the second most, `Income` contributes the third most, and `Tax` contributes the least but still significantly.
+
+=\> Therefore, we can see the last variable added in the Type I `ANOVA` test is equivalent to the specific variable added in a Type II `ANOVA` test in a random order. `ANOVA` Tests for all other variables are different between Type I `ANOVA` and Type II `ANOVA`.
+
+# Question 5 (Q6.14)
+
+**Testing for lack-of-fit** (Data file: `MinnLand`) Refer to the Minnesota farm sales data introduced in **Problem 5.4**.
+
+## 6.14.1
+
+Fit the regression model `log(acrePrice)` \~ `year` via `OLS`, where `year` is not a factor, but treated as a continuous predictor. What does this model say about the change in price per acre over time? Call this model A.\
+**Answer**:\
+
+```{r}
+library(alr4)
+# Handle with the factorization in Q5.4
+MinnLand$year <- as.character(MinnLand$year) # convert "year" into characteristics
+MinnLand$year <- as.numeric(MinnLand$year) # convert "year" into numerics
+class(MinnLand$year) # check whether "year" is a numerical variable
+lm_A <- lm(log(acrePrice) ~ year, data=MinnLand)
+summary(lm_A)
+```
+
+Interpretation:
+
+-   As the model A is a simple linear regression (SLR) model, we suppose that the only variable that influencing the `log(acrePrice)` is `year`. Hence, the change of `log(acrePrice)` each year is the same.
+
+-   Based on the estimated value of variable `year`, as 0.1005, the increased sale price per acre (\$) is estimated as 10.05% per year.
+
+## 6.14.2
+
+Fit the regression model via `log(acrePrice) ~ 1 + fyear` via `OLS`, where `fyear` is a factor with as many levels are there are years in the data, including the intercept in the model. What does this model say about the change in price per acre over time? Call this model B. (*Hint*: `fyear` is not included in the data file. You need to create it from the variable `year`.)\
+**Answer**:\
+
+```{r}
+MinnLand$fyear <- factor(MinnLand$year)
+class(MinnLand$fyear) # check whether "fyear" is a factorial variable
+levels(MinnLand$fyear)
+lm_B <- lm(log(acrePrice) ~ 1 + fyear, data=MinnLand)
+summary(lm_B)
+```
+
+Interpretation:
+
+-   As the only regressor `fyear` included in the SLR model B is a dummy variable of different years, the changes of `log(acrePrice)` each year may be different.
+
+-   An intercept is included in model B, and its estimated value represents the average sale price per acre (\$) in 2002 is 7.27. While all values of the coefficients are the estimated values of differences between the specific year and the first year, 2002. Therefore, we can see the average sale price per acre (\$) in 2003 is the lowest and that in 2010 is the highest.
+
+## 6.14.3
+
+Show that model A is a special case of model B, and so a hypothesis test of NH : model A versus AH : model B is reasonable.\
+**Answer**:
+
+-   In model A, the continuous regressor `year` fits all the data points on a straight line; while in model B, the separate coefficients for each year from 2002 to 2011 are fitted, and these coefficients all fall on the straight line in model A.
+
+-   Model A is a continuous linear regression model incorporating the only regressor `year` as a continuous variable; while Model B is incorporating a similar regressor `fyear` but the only difference is that it is factorial.
+
+-   Therefore, model A is a special case of model B and a hypothesis test of NH: model A versus AH: model B is reasonable where we extend the discrete values of `fyear` in model B to the continuous values in `year` in model A.
+
+## 6.14.4
+
+A question of interest is whether or not model A provides an adequate description of the change in `log(acrePrice)` over `time`. The hypothesis test of NH : model A versus AH : model B addresses this question, and it can be called a *lack-of-fit test* for model A. Perform the test and summarize results.\
+**Answer**:\
+
+```{r}
+anova(lm_A,lm_B)
+```
+
+Result summary:
+
+-   In the `ANOVA` analysis summary above, the p-value is small enough and thus the result is significant to reject the null hypothesis NH: model A.
+
+-   Therefore, there is not a linear increase in `log(acrePrice)` over `year`, which fails the assumption of continuous `year`.
